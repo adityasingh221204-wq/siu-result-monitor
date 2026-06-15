@@ -82,8 +82,23 @@ def check_portal():
     try:
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     except Exception as e:
-        print(f"webdriver-manager failed ({e}). Falling back to native Selenium manager...")
-        driver = webdriver.Chrome(options=options)
+        print(f"webdriver-manager failed ({e}). Trying to find cached driver...")
+        import glob
+        import os
+        wdm_pattern = os.path.expanduser(r"~\.wdm\drivers\chromedriver\win64\**\chromedriver.exe")
+        cached_paths = glob.glob(wdm_pattern, recursive=True)
+        if cached_paths:
+            cached_paths.sort()
+            latest_cached = cached_paths[-1]
+            print(f"Found cached driver at: {latest_cached}")
+            driver = webdriver.Chrome(service=Service(latest_cached), options=options)
+        else:
+            print("No cached driver found. Falling back to native Selenium manager...")
+            try:
+                driver = webdriver.Chrome(options=options)
+            except Exception as e2:
+                print(f"Native Selenium manager also failed: {e2}")
+                raise e2
 
     status = "NO_RESULT"
     error_msg = None
