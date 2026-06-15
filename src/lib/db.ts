@@ -1,12 +1,17 @@
+import "./env-init";
 import { PrismaClient } from "@prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { createClient } from "@libsql/client";
 
-if (!process.env.PRISMA_DATABASE_URL) {
-  process.env.PRISMA_DATABASE_URL = "file:./dev.db";
+const rawPrismaDbUrl = process.env["PRISMA_DATABASE_URL"];
+if (!rawPrismaDbUrl || rawPrismaDbUrl === "undefined" || rawPrismaDbUrl === "null") {
+  process.env["PRISMA_DATABASE_URL"] = "file:./dev.db";
 }
 
-const databaseUrl = process.env.DATABASE_URL || "file:./dev.db";
+const rawDbUrl = process.env["DATABASE_URL"];
+const databaseUrl = (!rawDbUrl || rawDbUrl === "undefined" || rawDbUrl === "null")
+  ? "file:./dev.db"
+  : rawDbUrl;
 
 const getPrismaClient = () => {
   console.log("[Prisma] process.env.DATABASE_URL state:", process.env.DATABASE_URL ? "DEFINED" : "UNDEFINED");
