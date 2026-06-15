@@ -1,17 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
-import { createClient } from "@libsql/client";
 
 const databaseUrl = process.env.DATABASE_URL || "file:./dev.db";
 
-const libsql = createClient({
+const adapter = new PrismaLibSql({
   url: databaseUrl,
 });
 
-const adapter = new PrismaLibSql(libsql as any);
-
 const prismaClientSingleton = () => {
-  return new PrismaClient({ adapter } as any);
+  return new PrismaClient({
+    adapter,
+  });
 };
 
 declare global {
