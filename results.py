@@ -48,26 +48,42 @@ def post_to_dashboard(status, response_time, error_message=None):
         "screenshot": screenshot_base64,
     }
 
-    req = urllib.request.Request(
-        API_URL,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
+    urls_to_try = [API_URL]
+    local_fallback = "http://localhost:3000/api/logs/create"
+    if API_URL != local_fallback:
+        urls_to_try.append(local_fallback)
 
-    try:
-        with urllib.request.urlopen(req) as response:
-            response.read()
-            print(f"Posted status [{status}] to web dashboard successfully.")
-    except Exception as e:
-        print(f"Failed to post logs to web dashboard: {e}")
+    posted = False
+    for url in urls_to_try:
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req) as response:
+                response.read()
+                print(f"Posted status [{status}] to web dashboard ({url}) successfully.")
+                posted = True
+                break
+        except Exception as e:
+            print(f"Failed to post logs to {url}: {e}")
+
+    if not posted:
+        print("Could not post logs to any web dashboard.")
 
 
 def check_portal():
     start_time = time.time()
     options = Options()
     options.add_argument("--headless=new")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    
+    try:
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    except Exception as e:
+        print(f"webdriver-manager failed ({e}). Falling back to native Selenium manager...")
+        driver = webdriver.Chrome(options=options)
 
     status = "NO_RESULT"
     error_msg = None
