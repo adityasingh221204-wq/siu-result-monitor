@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Tracker {
+  id               String            @id @default(uuid())
+  prn              String            @unique
+  name             String            @default("Student Tracker")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  logs             MonitoringLog[]
+  detections       DetectionEvent[]
+}
+
+model MonitoringLog {
+  id           String   @id @default(uuid())
+  trackerId    String
+  tracker      Tracker  @relation(fields: [trackerId], references: [id], onDelete: Cascade)
+  checkTime    DateTime @default(now())
+  status       String   // "SUCCESS", "FAILED", "NO_RESULT"
+  responseTime Int      // in milliseconds
+  errorMessage String?
+  screenshot   String?  // base64 data URL
+}
+
+model DetectionEvent {
+  id         String   @id @default(uuid())
+  trackerId  String
+  tracker    Tracker  @relation(fields: [trackerId], references: [id], onDelete: Cascade)
+  detectedAt DateTime @default(now())
+  confidence Float    @default(1.0)
+  status     String   // "NEW", "ACKNOWLEDGED"
+}
+
+model PortalHealth {
+  id           String   @id @default(uuid())
+  status       String   // "ONLINE", "SLOW", "DOWN"
+  responseTime Int      // latency in ms
+  checkedAt    DateTime @default(now())
+}
+
+model SystemSettings {
+  id             String   @id @default("global")
+  checkInterval  Int      @default(60) // in seconds
+  autoRefresh    Boolean  @default(true)
+  soundEnabled   Boolean  @default(true)
+  soundVolume    Float    @default(0.8)
+  emailAlerts    Boolean  @default(true)
+  smsAlerts      Boolean  @default(false)
+  telegramAlerts Boolean  @default(false)
+}
