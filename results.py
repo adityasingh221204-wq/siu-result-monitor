@@ -17,7 +17,7 @@ URL = "https://siuexam.siu.edu.in/forms/resultview.html"
 PRN_NUMBER = "24070126017"
 ALARM_FILE = "audio.mp3"
 CHECK_INTERVAL = 60
-API_URL = "http://localhost:3000/api/logs/create"
+API_URL = "https://siu-result-monitor-gamma.vercel.app/api/logs/create"
 
 
 def start_aggressive_alarm():
